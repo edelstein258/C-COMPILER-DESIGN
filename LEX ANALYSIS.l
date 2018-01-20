@@ -7,6 +7,7 @@ int lines=0;
 int max=0;
 int c=0;
 int comments=0;
+int z=0;
 %}
 
 LINE \n
@@ -42,11 +43,13 @@ all ({Id}|{digit}|{op}|{array}|{keyword})*
 
 %% 
 
-{comment} {if(c==1){printf("\nERROR:NESTED COMMENT\n");exit(0);}else{c=1;}}
+{comment} {if(c==1){printf("Error :NESTED COMMENT\n");exit(0);}else{c=1;}}
 
 {endcomment} {c=0;comments++;}
 
 {scomment}  if(c==0)c=2;comments++;
+
+\"[^\"]*\" if(c==0)Insert("String literal",yytext,Search(yytext)); /* comment this line for identify format srecifiers*/
 
 {LINE}  if(c==2)c=0;
 
@@ -84,7 +87,7 @@ all ({Id}|{digit}|{op}|{array}|{keyword})*
 
 {Id} if(c==0)Insert("ID",yytext,Search(yytext));
 
-"&&"|"<"|">"|"<="|">="|"="|"+"|"-"|"?"|"*"|"/"|"&"|"||" if(c==0)Insert("OPERATOR",yytext,Search(yytext));  
+"&&"|"<"|">"|"<="|">="|"="|"+"|"-"|"?"|"*"|"/"|"&"|"||"|"++"|"--" if(c==0)Insert("OPERATOR",yytext,Search(yytext));  
 
 "{"|"}"|"["|"]"|"("|")"|"."|"\""|"\\"|";"|"," if(c==0)Insert("SEPERATOR",yytext,Search(yytext));  
 
@@ -175,12 +178,14 @@ void Display()
   p=first;
   printf("There are %d comments in the code\n",comments);
   //printf("\n\tSYMBOL\t\t\t\tTOKEN\t\t\t\tAttribute Number\n");
-fprintf(yyout,"\n\tSYMBOL\t\t\t\tTOKEN\t\t\t\tAttribute Number\n");
+fprintf(yyout,"\n\tSYMBOL\t\t\t\t\t\t\tTOKEN\t\t\t\tAttribute Number\n");
   for(i=0;i<size;i++)
    {
     //printf("\t%s\t\t\t\t%s\t\t\t\t%d\n",p->symbol,p->label,p->addr);
-	fprintf(yyout,"\t%s\t\t\t\t%s\t\t\t\t%d\n",p->symbol,p->label,p->addr);
-    p=p->next;
+	if(p->addr==z){    /* comment the if condition(not the printf statements within) for reoccurances of symbols to be shown*/
+	fprintf(yyout,"\t%s\t\t\t\t\t\t\t%s\t\t\t\t%d\n",p->symbol,p->label,p->addr);
+	z++;
+	}
+    	p=p->next;
    }
 }
-
